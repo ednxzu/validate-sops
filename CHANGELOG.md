@@ -17,3 +17,18 @@ All notable changes to the "validate-sops" project will be documented in this fi
 - Poetry setup for easy project management and dependency handling.
 - README with detailed setup, usage, and contribution instructions.
 - MIT License to clearly define the terms under which the software is licensed.
+
+## v0.2.0 (2025-03-08)
+
+### Feat
+
+- add commitizen for automatic version management
+- major rewrite of core components.
+
+### Fix
+
+- lower python dependency, to work on older systems
+
+## v0.1.1 (2024-02-20)
+
+## v0.1.0 (2024-02-18)
