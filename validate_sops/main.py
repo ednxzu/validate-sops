@@ -1,14 +1,3 @@
-"""
-validate_sops.main
-
-A pre-commit hook to validate whether given files are encrypted with SOPS.
-It checks for the presence of 'sops_version' in each file.
-
-Authors:
-    - Vladimir Zhukov
-    - Bertrand Lanson
-"""
-
 import json
 import logging
 import os
@@ -21,14 +10,12 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 
 def is_sops_encrypted_json_or_yaml(data):
-    """Check if parsed JSON/YAML contains SOPS metadata."""
     return (
         isinstance(data, dict) and "sops" in data and "version" in data["sops"]
     )
 
 
 def is_sops_encrypted_env(content):
-    """Check if .env file contains 'sops_version' definition."""
     return any(
         line.strip().startswith("sops_version=")
         for line in reversed(content.splitlines())
@@ -36,7 +23,6 @@ def is_sops_encrypted_env(content):
 
 
 def read_file(file_path):
-    """Read a file's content safely."""
     try:
         with open(file_path, encoding="utf-8") as file:
             return file.read()
@@ -52,7 +38,6 @@ def read_file(file_path):
 
 
 def is_sops_encrypted(file_path):
-    """Check if a file is encrypted with SOPS."""
     file_ext = os.path.splitext(file_path)[1].lower()
     content = read_file(file_path)
 
@@ -80,7 +65,6 @@ def is_sops_encrypted(file_path):
 
 
 def main():
-    """Main function to validate a list of files."""
     parser = ArgumentParser(
         description="Check if files are encrypted with SOPS."
     )

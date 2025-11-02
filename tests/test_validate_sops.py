@@ -1,9 +1,3 @@
-"""
-Tests for validate_sops module.
-
-This module contains unit tests to ensure correct detection of SOPS-encrypted files.
-"""
-
 import os
 from unittest.mock import mock_open, patch
 
@@ -16,7 +10,6 @@ SUPPORTED_EXTENSIONS = ["env", "json", "yaml", "yml"]
 
 @pytest.mark.parametrize("extension", SUPPORTED_EXTENSIONS)
 def test_encrypted_file(extension):
-    """Ensure encrypted files are correctly identified."""
     encrypted_file_path = os.path.join(
         os.path.dirname(__file__), "secrets", f"encrypted.{extension}"
     )
@@ -27,7 +20,6 @@ def test_encrypted_file(extension):
 
 @pytest.mark.parametrize("extension", SUPPORTED_EXTENSIONS)
 def test_unencrypted_file(extension):
-    """Ensure unencrypted files are correctly identified."""
     unencrypted_file_path = os.path.join(
         os.path.dirname(__file__), "secrets", f"unencrypted.{extension}"
     )
@@ -38,7 +30,6 @@ def test_unencrypted_file(extension):
 
 @pytest.mark.parametrize("content", ["", "   ", "\n\n"])
 def test_empty_file(content):
-    """Ensure empty files return False."""
     with patch("builtins.open", mock_open(read_data=content)):
         assert not is_sops_encrypted("fake.json")
 
@@ -54,7 +45,6 @@ def test_empty_file(content):
 )
 @pytest.mark.parametrize("extension", ["json", "yaml", "yml"])
 def test_malformed_or_invalid_sops_structure(invalid_content, extension):
-    """Ensure files with invalid SOPS structures return False."""
     with patch("builtins.open", mock_open(read_data=invalid_content)):
         assert not is_sops_encrypted(f"fake.{extension}")
 
@@ -68,7 +58,6 @@ def test_malformed_or_invalid_sops_structure(invalid_content, extension):
     ],
 )
 def test_env_file_variations(env_content):
-    """Ensure .env file variations are handled correctly."""
     expected = "sops_version=" in env_content and not env_content.startswith(
         "#"
     )
@@ -77,14 +66,12 @@ def test_env_file_variations(env_content):
 
 
 def test_non_existent_file():
-    """Ensure a missing file returns False and logs an error."""
     with patch("validate_sops.main.logging.error") as mock_log:
         assert not is_sops_encrypted("missing.json")
         mock_log.assert_called_with("File not found: %s", "missing.json")
 
 
 def test_permission_denied():
-    """Ensure permission errors are handled correctly."""
     with patch("builtins.open", side_effect=PermissionError):
         with patch("validate_sops.main.logging.error") as mock_log:
             assert not is_sops_encrypted("restricted.json")
@@ -94,7 +81,6 @@ def test_permission_denied():
 
 
 def test_unreadable_file():
-    """Ensure files that can't be read return False."""
     with patch(
         "builtins.open",
         side_effect=UnicodeDecodeError("utf-8", b"", 0, 1, "Invalid byte"),
@@ -122,7 +108,6 @@ def test_unreadable_file():
     ],
 )
 def test_edge_cases(file_name):
-    """Ensure edge case files return False and do not crash the program."""
     file_path = os.path.join(os.path.dirname(__file__), "secrets", file_name)
     assert not is_sops_encrypted(
         file_path
