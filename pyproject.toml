@@ -26,6 +26,7 @@ dev = [
   "pre-commit>=3.6.1,<4",
   "coverage>=7.6.12,<8",
   "ruff>=0.14.3",
+  "pytest-cov>=7.0.0",
 ]
 
 [tool.hatch.build.targets.sdist]
@@ -72,3 +73,9 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "lf"
+
+[tool.pytest.ini_options]
+markers = [
+  "unit: marks tests as unit tests",
+  "integration: marks tests as integration tests",
+]

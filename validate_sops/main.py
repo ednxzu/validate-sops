@@ -1,67 +1,11 @@
-import json
-import logging
+import fnmatch
 import os
 import sys
 from argparse import ArgumentParser
 
-import yaml
-
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-
-
-def is_sops_encrypted_json_or_yaml(data):
-    return (
-        isinstance(data, dict) and "sops" in data and "version" in data["sops"]
-    )
-
-
-def is_sops_encrypted_env(content):
-    return any(
-        line.strip().startswith("sops_version=")
-        for line in reversed(content.splitlines())
-    )
-
-
-def read_file(file_path):
-    try:
-        with open(file_path, encoding="utf-8") as file:
-            return file.read()
-    except FileNotFoundError:
-        logging.error("File not found: %s", file_path)
-    except PermissionError:
-        logging.error("Permission denied: %s", file_path)
-    except UnicodeDecodeError:
-        logging.error("Unable to decode file: %s", file_path)
-    except Exception as e:  # pylint: disable=broad-except
-        logging.error("Unexpected error reading %s: %s", file_path, e)
-    return None
-
-
-def is_sops_encrypted(file_path):
-    file_ext = os.path.splitext(file_path)[1].lower()
-    content = read_file(file_path)
-
-    if content is None:
-        return False
-
-    parsers = {
-        ".json": lambda c: is_sops_encrypted_json_or_yaml(json.loads(c)),
-        ".yaml": lambda c: is_sops_encrypted_json_or_yaml(yaml.safe_load(c)),
-        ".yml": lambda c: is_sops_encrypted_json_or_yaml(yaml.safe_load(c)),
-        ".env": is_sops_encrypted_env,
-    }
-
-    if file_ext in parsers:
-        try:
-            return parsers[file_ext](content)
-        except (json.JSONDecodeError, yaml.YAMLError):
-            logging.error("Invalid %s syntax in %s", file_ext, file_path)
-        except Exception as e:  # pylint: disable=broad-except
-            logging.error("Error processing %s: %s", file_path, e)
-    else:
-        logging.warning("Unsupported file type: %s", file_path)
-
-    return False
+from validate_sops.ignore import load_ignore_list
+from validate_sops.logger import LOGGER
+from validate_sops.sops import is_sops_encrypted
 
 
 def main():
@@ -69,14 +13,33 @@ def main():
         description="Check if files are encrypted with SOPS."
     )
     parser.add_argument("filenames", nargs="+", help="Files to check")
+    parser.add_argument(
+        "--ignore-file",
+        default=".validate-sops-ignore",
+        help="Path to a file listing files to ignore (supports glob patterns).",
+    )
 
     args = parser.parse_args()
+    ignore_patterns = load_ignore_list(args.ignore_file)
+
+    failed = False
 
     for file_path in args.filenames:
+        rel_path = os.path.relpath(file_path)
+
+        if any(
+            fnmatch.fnmatch(rel_path, pattern) for pattern in ignore_patterns
+        ):
+            LOGGER.info("Skipping ignored file: %s", rel_path)
+            continue
+
         if not is_sops_encrypted(file_path):
-            logging.error(
+            LOGGER.error(
                 "❌ The file %s is NOT encrypted with SOPS.", file_path
             )
-            sys.exit(1)
+            failed = True
 
-    logging.info("✅ All files are properly encrypted with SOPS.")
+    if failed:
+        sys.exit(1)
+
+    LOGGER.info("✅ All files are properly encrypted with SOPS.")

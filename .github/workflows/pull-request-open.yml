@@ -34,39 +34,54 @@ jobs:
         shell: bash
         working-directory: ${{ github.workspace }}
 
-  tests:
-    name: Run unit tests
+  pre-commits:
+    name: Run pre-commits
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          virtualenvs-path: ${{ github.workspace }}/.env
-          installer-parallel: true
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python
+        working-directory: ${{ github.workspace }}
+        shell: bash
+        run: uv python install
 
       - name: Install dependencies
-        run: poetry install --no-interaction --no-root
-        shell: bash
         working-directory: ${{ github.workspace }}
+        shell: bash
+        run: uv sync --group dev
 
-      - name: Install project
-        run: poetry install --no-interaction
-        shell: bash
+      - name: Run pre-commit hooks
         working-directory: ${{ github.workspace }}
+        shell: bash
+        run: uv run pre-commit run --all-files
+
+  tests:
+    name: Run pytest unit/integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python
+        working-directory: ${{ github.workspace }}
+        shell: bash
+        run: uv python install
+
+      - name: Install dependencies
+        working-directory: ${{ github.workspace }}
+        shell: bash
+        run: uv sync --group dev
 
       - name: Run unit tests
-        run: poetry run coverage run -m pytest -v -s
-        shell: bash
         working-directory: ${{ github.workspace }}
+        shell: bash
+        run: uv run pytest -v --cov=validate_sops --cov-report=term-missing --cov-fail-under=70
         env:
           PYTEST_ADDOPTS: "--color=yes"
-
-      - name: Run coverage report
-        run: poetry run coverage report -m --fail-under=75
-        shell: bash
-        working-directory: ${{ github.workspace }}
