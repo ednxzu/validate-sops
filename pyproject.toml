@@ -61,10 +61,7 @@ select = [
   "B",  # bugbear (better code safety)
   "S",  # flake8-bandit (security)
   "C4", # flake8-comprehensions
-]
-
-ignore = [
-  "E501", # Line too long — let formatter handle it
+  "PL", # pylint
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
