@@ -1,48 +1,77 @@
 [project]
 name = "validate-sops"
+version = "0.2.0"
 description = "A Python utility to ensure your files are securely encrypted with SOPS. Integrates seamlessly into your pre-commit workflow, providing automated validation for SOPS-encrypted files, enhancing security and compliance in your development process."
+authors = [
+  { name = "Vladimir Zhukov" },
+  { name = "Bertrand Lanson", email = "bertrand.lanson@protonmail.com" },
+]
+requires-python = ">=3.10,<4.0"
+readme = "README.md"
 license = "MIT"
 keywords = ["sops", "pre-commit", "hook"]
-dynamic = ["version"]
-readme = "README.md"
-authors = [
-  {name = "Vladimir Zhukov"},
-  {name = "Bertrand Lanson", email = "bertrand.lanson@protonmail.com"}
-]
-requires-python = '>=3.10,<4.0'
-dependencies = ['pyyaml (>=6.0.1,<7.0.0)']
+dependencies = ["pyyaml (>=6.0.1,<7.0.0)"]
 
 [project.urls]
 homepage = "https://github.com/voldy/validate-sops"
 repository = "https://github.com/voldy/validate-sops"
 
 [project.scripts]
-validate-sops = 'validate_sops.main:main'
+validate-sops = "validate_sops.main:main"
 
-[tool.poetry]
-version = "0.2.0"
+[dependency-groups]
+dev = [
+  "pytest>=8.0.1,<9",
+  "pylint>=3.0.3,<4",
+  "pre-commit>=3.6.1,<4",
+  "coverage>=7.6.12,<8",
+  "ruff>=0.14.3",
+]
 
+[tool.hatch.build.targets.sdist]
 include = ["LICENSE"]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.0.1"
-pylint = "^3.0.3"
-pre-commit = "^3.6.1"
-coverage = "^7.6.12"
+[tool.hatch.build.targets.wheel]
+include = ["LICENSE"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.1.0"
-version_provider = "poetry"
+version_provider = "pep621"
 tag_format = "v$version"
 update_changelog_on_bump = true
-version_files = [
-  "pyproject.toml:^version",
+version_files = ["pyproject.toml:^version"]
+
+
+[tool.ruff]
+target-version = "py310"
+line-length = 80
+fix = true
+
+[tool.ruff.lint]
+select = [
+  "E",  # pycodestyle errors
+  "F",  # pyflakes
+  "I",  # import sorting
+  "N",  # pep8-naming
+  "UP", # pyupgrade
+  "B",  # bugbear (better code safety)
+  "S",  # flake8-bandit (security)
+  "C4", # flake8-comprehensions
 ]
+
+ignore = [
+  "E501", # Line too long — let formatter handle it
+]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"tests/*.py" = ["S101"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "lf"

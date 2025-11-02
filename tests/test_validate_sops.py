@@ -5,8 +5,10 @@ This module contains unit tests to ensure correct detection of SOPS-encrypted fi
 """
 
 import os
+from unittest.mock import mock_open, patch
+
 import pytest
-from unittest.mock import patch, mock_open
+
 from validate_sops.main import is_sops_encrypted
 
 SUPPORTED_EXTENSIONS = ["env", "json", "yaml", "yml"]
@@ -67,7 +69,9 @@ def test_malformed_or_invalid_sops_structure(invalid_content, extension):
 )
 def test_env_file_variations(env_content):
     """Ensure .env file variations are handled correctly."""
-    expected = "sops_version=" in env_content and not env_content.startswith("#")
+    expected = "sops_version=" in env_content and not env_content.startswith(
+        "#"
+    )
     with patch("builtins.open", mock_open(read_data=env_content)):
         assert is_sops_encrypted("fake.env") == expected
 
@@ -84,7 +88,9 @@ def test_permission_denied():
     with patch("builtins.open", side_effect=PermissionError):
         with patch("validate_sops.main.logging.error") as mock_log:
             assert not is_sops_encrypted("restricted.json")
-            mock_log.assert_called_with("Permission denied: %s", "restricted.json")
+            mock_log.assert_called_with(
+                "Permission denied: %s", "restricted.json"
+            )
 
 
 def test_unreadable_file():
@@ -95,7 +101,9 @@ def test_unreadable_file():
     ):
         with patch("validate_sops.main.logging.error") as mock_log:
             assert not is_sops_encrypted("corrupt.json")
-            mock_log.assert_called_with("Unable to decode file: %s", "corrupt.json")
+            mock_log.assert_called_with(
+                "Unable to decode file: %s", "corrupt.json"
+            )
 
 
 @pytest.mark.parametrize(
