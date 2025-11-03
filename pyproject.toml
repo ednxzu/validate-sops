@@ -1,6 +1,6 @@
 [project]
 name = "validate-sops"
-version = "0.2.0"
+version = "0.3.0"
 description = "A Python utility to ensure your files are securely encrypted with SOPS. Integrates seamlessly into your pre-commit workflow, providing automated validation for SOPS-encrypted files, enhancing security and compliance in your development process."
 authors = [
   { name = "Vladimir Zhukov" },

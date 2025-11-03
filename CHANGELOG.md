@@ -18,6 +18,12 @@ All notable changes to the "validate-sops" project will be documented in this fi
 - README with detailed setup, usage, and contribution instructions.
 - MIT License to clearly define the terms under which the software is licensed.
 
+## v0.3.0 (2025-11-03)
+
+### Feat
+
+- major refactor and add option for ignore file
+
 ## v0.2.0 (2025-03-08)
 
 ### Feat
